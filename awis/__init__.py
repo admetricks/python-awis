@@ -131,6 +131,28 @@ class AwisApi(object):
 
         return self.request(params)
 
+    def traffic_history(self, urls, range_day, start_date):
+        params = {
+            "Action": "TrafficHistory",
+            "Range": range_day,
+            "Start": start_date.strftime('%Y%m%d')
+        }
+        if not isinstance(urls, (list, tuple)):
+            params.update({
+                "Url": quote(urls),
+                "ResponseGroup": "History",
+             })
+        else:
+            if len(urls) > self.MAX_BATCH_REQUESTS:
+                raise RuntimeError("Maximum number of batch URLs is %s." % self.MAX_BATCH_REQUESTS)
+
+            params.update({ "TrafficHistory.Shared.ResponseGroup": "History" })
+
+            for i, url in enumerate(urls):
+                params.update({"TrafficHistory.%d.Url" % (i + 1): quote(url)})
+
+        return self.request(params)
+
     def url_info(self, urls, *response_groups, **kwargs):
         params = {"Action": "UrlInfo"}
         if not isinstance(urls, (list, tuple)):
